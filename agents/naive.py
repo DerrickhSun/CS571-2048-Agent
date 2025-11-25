@@ -31,7 +31,7 @@ class RandomAgent(Agent):
             # We can check by seeing if the board would change
             test_matrix = copy.deepcopy(game_grid.matrix)
             move_func = game_grid.direction_map[direction]
-            new_matrix, done = move_func(test_matrix)
+            new_matrix, done, score = move_func(test_matrix)
             
             if done:
                 return direction

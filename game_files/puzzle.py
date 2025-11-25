@@ -58,17 +58,19 @@ class GameGrid(Frame):
         }
 
         self.grid_cells = []
+        self.score = 0
         self.init_grid()
         self.matrix = logic.new_game(c.GRID_LEN)
         self.history_matrixs = []
         self.update_grid_cells()
+        self.update_score_display()
 
         if auto_start:
             self.mainloop()
 
     def init_grid(self):
         background = Frame(self, bg=c.BACKGROUND_COLOR_GAME,width=c.SIZE, height=c.SIZE)
-        background.grid()
+        background.grid(row=0, column=0)
 
         for i in range(c.GRID_LEN):
             grid_row = []
@@ -96,6 +98,28 @@ class GameGrid(Frame):
                 t.grid()
                 grid_row.append(t)
             self.grid_cells.append(grid_row)
+        
+        # Create score label below the game grid
+        score_frame = Frame(self, bg=c.BACKGROUND_COLOR_GAME)
+        score_frame.grid(row=1, column=0, pady=10)
+        
+        score_label_text = Label(
+            master=score_frame,
+            text="Score:",
+            bg=c.BACKGROUND_COLOR_GAME,
+            fg="#f9f6f2",
+            font=("Verdana", 20, "bold")
+        )
+        score_label_text.pack(side="left", padx=5)
+        
+        self.score_label = Label(
+            master=score_frame,
+            text="0",
+            bg=c.BACKGROUND_COLOR_GAME,
+            fg="#f9f6f2",
+            font=("Verdana", 20, "bold")
+        )
+        self.score_label.pack(side="left", padx=5)
 
     def update_grid_cells(self):
         for i in range(c.GRID_LEN):
@@ -110,6 +134,11 @@ class GameGrid(Frame):
                         fg=c.CELL_COLOR_DICT[new_number]
                     )
         self.update_idletasks()
+    
+    def update_score_display(self):
+        """Update the score label with the current score."""
+        if hasattr(self, 'score_label'):
+            self.score_label.configure(text=str(self.score))
 
     def make_move(self, direction):
         """
@@ -126,13 +155,14 @@ class GameGrid(Frame):
             return False
         
         move_function = self.direction_map[direction]
-        self.matrix, done = move_function(self.matrix)
-        
+        self.matrix, done, score = move_function(self.matrix)
         if done:
+            self.score += score
             self.matrix = logic.add_two(self.matrix)
             # record last move
             self.history_matrixs.append(self.matrix)
             self.update_grid_cells()
+            self.update_score_display()
             
             game_state = logic.game_state(self.matrix)
             if game_state == 'win':
