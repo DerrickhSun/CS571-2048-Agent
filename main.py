@@ -12,14 +12,16 @@ from tkinter import Tk
 from game_files.puzzle import GameGrid
 import game_files.logic as logic
 from agents.naive import RandomAgent
+from monte_carlo.improved_mcts import ImprovedMCTSAgent, RandomPlayoutAgent
 
 # Dictionary mapping argument strings to agent classes
 AGENT_CLASSES = {
-    # Example: random agent
+    # Basic agents
     'random': RandomAgent,
     
-    # Add more agent classes here as needed
-    # 'my_agent': MyCustomAgent,
+    # Monte Carlo Tree Search agents
+    'mcts': ImprovedMCTSAgent,
+    'mcts_playout': RandomPlayoutAgent,
 }
 
 
