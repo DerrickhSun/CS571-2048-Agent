@@ -16,11 +16,19 @@ except ImportError:
         import logic
         import constants as c
 
+# Handle imports for generation methods
+try:
+    from generation_methods import Random2
+except ImportError:
+    # Fallback if generation_methods is not available
+    Random2 = None
+
 def gen():
     return random.randint(0, c.GRID_LEN - 1)
 
+
 class GameGrid(Frame):
-    def __init__(self, auto_start=True, root=None):
+    def __init__(self, auto_start=True, root=None, generation_method=None):
         if root is None:
             Frame.__init__(self)
         else:
@@ -29,6 +37,16 @@ class GameGrid(Frame):
         self.grid()
         self.master.title('2048')
         self.master.bind("<Key>", self.key_down)
+        
+        # Set up generation method (default to Random2 if none provided)
+        if generation_method is None:
+            if Random2 is not None:
+                self.generation_method = Random2()
+            else:
+                # Fallback to None - will use logic.add_two directly
+                self.generation_method = None
+        else:
+            self.generation_method = generation_method
 
         self.commands = {
             c.KEY_UP: logic.up,
@@ -158,7 +176,11 @@ class GameGrid(Frame):
         self.matrix, done, score = move_function(self.matrix)
         if done:
             self.score += score
-            self.matrix = logic.add_two(self.matrix)
+            # Use generation method if available, otherwise fallback to logic.add_two
+            if self.generation_method is not None:
+                self.matrix = self.generation_method.add_tile(self.matrix)
+            else:
+                self.matrix = logic.add_two(self.matrix)
             # record last move
             self.history_matrixs.append(self.matrix)
             self.update_grid_cells()
@@ -203,6 +225,7 @@ class GameGrid(Frame):
         while self.matrix[index[0]][index[1]] != 0:
             index = (gen(), gen())
         self.matrix[index[0]][index[1]] = 2
+
 
 if __name__ == "__main__":
     game_grid = GameGrid()
