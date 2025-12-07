@@ -15,6 +15,14 @@ from agents.naive import RandomAgent
 from monte_carlo.improved_mcts import ImprovedMCTSAgent, RandomPlayoutAgent
 from generation_methods import Random2, Default, Scaling
 
+# Try to import Q-Learning agent (may not be available if q_learning directory doesn't exist)
+try:
+    from agents.q_learning_agent import QLearningAgent
+    Q_LEARNING_AVAILABLE = True
+except ImportError:
+    Q_LEARNING_AVAILABLE = False
+    QLearningAgent = None
+
 # Dictionary mapping argument strings to agent classes
 AGENT_CLASSES = {
     # Basic agents
@@ -24,6 +32,11 @@ AGENT_CLASSES = {
     'mcts': ImprovedMCTSAgent,
     'mcts_playout': RandomPlayoutAgent,
 }
+
+# Add Q-Learning agent if available
+if Q_LEARNING_AVAILABLE:
+    AGENT_CLASSES['qlearning'] = QLearningAgent
+    AGENT_CLASSES['ql'] = QLearningAgent  # Short alias
 
 # Dictionary mapping argument strings to generation method classes
 GENERATION_METHOD_CLASSES = {
