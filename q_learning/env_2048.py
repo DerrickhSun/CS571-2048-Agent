@@ -2,6 +2,7 @@ import logic
 import constants as c
 import random
 
+
 # Action mapping:
 # 0 = up, 1 = down, 2 = left, 3 = right
 ACTIONS = [0, 1, 2, 3]
@@ -28,8 +29,11 @@ class Game2048Env:
             move_fn = logic.down
         elif action == 2:
             move_fn = logic.left
-        else:
+        elif action == 3:
             move_fn = logic.right
+        else:
+            print("Cannot Step Environment! Invalid action received!")
+            raise ValueError("Cannot Step Environment! Invalid action received!")
 
         # Apply move
         new_matrix, done_move, merge_score = move_fn(self.matrix)
@@ -60,7 +64,7 @@ class Game2048Env:
         # Otherwise game continues
         return encode_state(self.matrix), reward, False
 
-    def get_valid_actions(self):
+    def get_valid_actions(self) -> list[int]:
         """Optional helper for smarter exploration."""
         valid = []
         for action in ACTIONS:
@@ -70,9 +74,11 @@ class Game2048Env:
                 move_fn = logic.down
             elif action == 2:
                 move_fn = logic.left
-            else:
+            elif action == 3:
                 move_fn = logic.right
-
+            else:
+                raise ValueError("Action found in ACTIONS list not a defined!")
+            
             _, done_move, _ = move_fn([row[:] for row in self.matrix])
             if done_move:
                 valid.append(action)
