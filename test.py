@@ -247,8 +247,8 @@ def main():
         print(f"# TESTING AGENT: {agent_display_name}")
         print("#"*70)
         
-        # Test 6 scenarios: 3x3, 4x4, 5x5 with both Default and Scaling tiles
-        for grid_size in [3, 4, 5]:
+        # Test 6 scenarios: 4x4, 5x5, 6x6 with both Default and Scaling tiles
+        for grid_size in [4, 5, 6]:
             # Default tiles
             exp_name = f"{agent_display_name}_{grid_size}x{grid_size}_Default"
             print(f"\n--- {agent_display_name} on {grid_size}x{grid_size} (Default tiles) ---")
