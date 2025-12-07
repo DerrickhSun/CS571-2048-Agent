@@ -158,6 +158,48 @@ class GameGrid(Frame):
         if hasattr(self, 'score_label'):
             self.score_label.configure(text=str(self.score))
 
+    def _handle_post_move(self):
+        """Common logic after a successful move."""
+        # Use generation method if available, otherwise fallback to logic.add_two
+        if self.generation_method is not None:
+            self.matrix = self.generation_method.add_tile(self.matrix)
+        else:
+            self.matrix = logic.add_two(self.matrix)
+        # record last move
+        self.history_matrixs.append(self.matrix)
+        self.update_grid_cells()
+        if hasattr(self, 'score_label'):
+            self.update_score_display()
+        
+        game_state = logic.game_state(self.matrix)
+        if game_state == 'win':
+            self.grid_cells[1][1].configure(text="You", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
+            self.grid_cells[1][2].configure(text="Win!", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
+        elif game_state == 'lose':
+            self.grid_cells[1][1].configure(text="You", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
+            self.grid_cells[1][2].configure(text="Lose!", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
+
+    def apply_move_direct(self, action):
+        """
+        Apply a move directly using action integer and return raw results.
+        This is useful for agents that need direct access to move results.
+        
+        Args:
+            action: Integer (0=up, 1=down, 2=left, 3=right)
+        
+        Returns:
+            Tuple of (new_matrix, done, score) where:
+            - new_matrix: The matrix after the move (copy)
+            - done: Boolean indicating if the move was valid
+            - score: The score from this move
+        """
+        if action not in [0, 1, 2, 3]:
+            return self.matrix, False, 0
+        
+        move_function = self.direction_map[action]
+        new_matrix, done, score = move_function(self.matrix)
+        return new_matrix, done, score
+
     def make_move(self, direction):
         """
         Execute a move in the specified direction.
@@ -176,23 +218,7 @@ class GameGrid(Frame):
         self.matrix, done, score = move_function(self.matrix)
         if done:
             self.score += score
-            # Use generation method if available, otherwise fallback to logic.add_two
-            if self.generation_method is not None:
-                self.matrix = self.generation_method.add_tile(self.matrix)
-            else:
-                self.matrix = logic.add_two(self.matrix)
-            # record last move
-            self.history_matrixs.append(self.matrix)
-            self.update_grid_cells()
-            self.update_score_display()
-            
-            game_state = logic.game_state(self.matrix)
-            if game_state == 'win':
-                self.grid_cells[1][1].configure(text="You", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
-                self.grid_cells[1][2].configure(text="Win!", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
-            elif game_state == 'lose':
-                self.grid_cells[1][1].configure(text="You", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
-                self.grid_cells[1][2].configure(text="Lose!", bg=c.BACKGROUND_COLOR_CELL_EMPTY)
+            self._handle_post_move()
             return True
         
         return False
