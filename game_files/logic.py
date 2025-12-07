@@ -1,7 +1,10 @@
 #
-# Modified CS1010FC logic.py
-# Supports variable tile distribution modes
+# CS1010FC --- Programming Methodology
 #
+# Mission N Solutions
+#
+# Note that written answers are commented out to allow us to run your
+# code easily while grading your problem set.
 
 import random
 
@@ -12,18 +15,14 @@ except ImportError:
     # When running directly, use relative imports
     import constants as c
 
-# Global variable to control tile distribution mode
-TILE_DISTRIBUTION_MODE = 'standard'  # 'standard' or 'modified'
+#######
+# Task 1a #
+#######
 
-def set_tile_distribution(mode='standard'):
-    """
-    Set the tile distribution mode.
-    
-    Args:
-        mode: 'standard' for {2, 4} or 'modified' for {2, 4, 8, ..., max_tile}
-    """
-    global TILE_DISTRIBUTION_MODE
-    TILE_DISTRIBUTION_MODE = mode
+# [Marking Scheme]
+# Points to note:
+# Matrix elements must be equal but not identical
+# 1 mark for creating the correct matrix
 
 def new_game(n):
     matrix = []
@@ -33,35 +32,35 @@ def new_game(n):
     matrix = add_two(matrix)
     return matrix
 
+###########
+# Task 1b #
+###########
+
+# [Marking Scheme]
+# Points to note:
+# Must ensure that it is created on a zero entry
+# 1 mark for creating the correct loop
+
 def add_two(mat):
-    """Add a new tile to the board based on current distribution mode."""
     a = random.randint(0, len(mat)-1)
     b = random.randint(0, len(mat)-1)
     while mat[a][b] != 0:
         a = random.randint(0, len(mat)-1)
         b = random.randint(0, len(mat)-1)
-    
-    # Determine tile value based on mode
-    if TILE_DISTRIBUTION_MODE == 'standard':
-        # Standard 2048: 90% chance of 2, 10% chance of 4
-        mat[a][b] = 2 if random.random() < 0.9 else 4
-    else:
-        # Modified: equal probability for {2, 4, 8, ..., max_tile}
-        max_tile = max(max(row) for row in mat)
-        if max_tile < 2:
-            max_tile = 2
-        
-        # Generate all powers of 2 up to max_tile
-        possible_tiles = []
-        power = 1
-        while 2**power <= max_tile:
-            possible_tiles.append(2**power)
-            power += 1
-        
-        # Choose randomly with equal probability
-        mat[a][b] = random.choice(possible_tiles)
-    
+    mat[a][b] = 2
     return mat
+
+###########
+# Task 1c #
+###########
+
+# [Marking Scheme]
+# Points to note:
+# Matrix elements must be equal but not identical
+# 0 marks for completely wrong solutions
+# 1 mark for getting only one condition correct
+# 2 marks for getting two of the three conditions
+# 3 marks for correct checking
 
 def game_state(mat):
     # check for win cell
@@ -76,6 +75,8 @@ def game_state(mat):
                 return 'not over'
     # check for same cells that touch each other
     for i in range(len(mat)-1):
+        # intentionally reduced to check the row on the right and below
+        # more elegant to use exceptions but most likely this will be their solution
         for j in range(len(mat[0])-1):
             if mat[i][j] == mat[i+1][j] or mat[i][j+1] == mat[i][j]:
                 return 'not over'
@@ -87,6 +88,16 @@ def game_state(mat):
             return 'not over'
     return 'lose'
 
+###########
+# Task 2a #
+###########
+
+# [Marking Scheme]
+# Points to note:
+# 0 marks for completely incorrect solutions
+# 1 mark for solutions that show general understanding
+# 2 marks for correct solutions that work for all sizes of matrices
+
 def reverse(mat):
     new = []
     for i in range(len(mat)):
@@ -94,6 +105,16 @@ def reverse(mat):
         for j in range(len(mat[0])):
             new[i].append(mat[i][len(mat[0])-j-1])
     return new
+
+###########
+# Task 2b #
+###########
+
+# [Marking Scheme]
+# Points to note:
+# 0 marks for completely incorrect solutions
+# 1 mark for solutions that show general understanding
+# 2 marks for correct solutions that work for all sizes of matrices
 
 def transpose(mat):
     new = []
@@ -103,18 +124,30 @@ def transpose(mat):
             new[i].append(mat[j][i])
     return new
 
+##########
+# Task 3 #
+##########
+
+# [Marking Scheme]
+# Points to note:
+# The way to do movement is compress -> merge -> compress again
+# Basically if they can solve one side, and use transpose and reverse correctly they should
+# be able to solve the entire thing just by flipping the matrix around
+# No idea how to grade this one at the moment. I have it pegged to 8 (which gives you like,
+# 2 per up/down/left/right?) But if you get one correct likely to get all correct so...
+# Check the down one. Reverse/transpose if ordered wrongly will give you wrong result.
+
 def cover_up(mat):
     new = []
-    grid_len = len(mat)
-    for j in range(grid_len):
+    for j in range(c.GRID_LEN):
         partial_new = []
-        for i in range(grid_len):
+        for i in range(c.GRID_LEN):
             partial_new.append(0)
         new.append(partial_new)
     done = False
-    for i in range(grid_len):
+    for i in range(c.GRID_LEN):
         count = 0
-        for j in range(grid_len):
+        for j in range(c.GRID_LEN):
             if mat[i][j] != 0:
                 new[i][count] = mat[i][j]
                 if j != count:
@@ -124,9 +157,8 @@ def cover_up(mat):
 
 def merge(mat, done):
     score = 0
-    grid_len = len(mat)
-    for i in range(grid_len):
-        for j in range(grid_len-1):
+    for i in range(c.GRID_LEN):
+        for j in range(c.GRID_LEN-1):
             if mat[i][j] == mat[i][j+1] and mat[i][j] != 0:
                 mat[i][j] *= 2
                 mat[i][j+1] = 0
@@ -135,7 +167,8 @@ def merge(mat, done):
     return mat, done, score
 
 def up(game):
-    # print("up")
+    print("up")
+    # return matrix after shifting up
     game = transpose(game)
     game, done = cover_up(game)
     game, done, score = merge(game, done)
@@ -144,7 +177,8 @@ def up(game):
     return game, done, score
 
 def down(game):
-    # print("down")
+    print("down")
+    # return matrix after shifting down
     game = reverse(transpose(game))
     game, done = cover_up(game)
     game, done, score = merge(game, done)
@@ -153,14 +187,16 @@ def down(game):
     return game, done, score
 
 def left(game):
-    # print("left")
+    print("left")
+    # return matrix after shifting left
     game, done = cover_up(game)
     game, done, score = merge(game, done)
     game = cover_up(game)[0]
     return game, done, score
 
 def right(game):
-    # print("right")
+    print("right")
+    # return matrix after shifting right
     game = reverse(game)
     game, done = cover_up(game)
     game, done, score = merge(game, done)
