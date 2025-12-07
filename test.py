@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
 Comprehensive evaluation script for the project proposal.
-Tests Expectimax under:
+Tests different agents under:
 1. Standard vs Modified (Scaling) tile distribution
-2. Different grid sizes (3x3, 4x4, 5x5)
+2. Different grid sizes (3x3, 4x4, 5x5, 6x6)
 3. Evaluates heuristic reliability across conditions
+
+Supports: Expectimax, MCTS (Monte Carlo), Random, and other agents
 """
 
 import sys
@@ -12,9 +14,20 @@ import time
 import copy
 from game_files import logic
 from game_files import constants as c
-from agents.expectimax import ExpectimaxAgent
+from agents.expectimax import ExpectimaxAgent, ExpectimaxAgentFast, ExpectimaxAgentDeep
 from agents.naive import RandomAgent
-from generation_methods import Default, Scaling
+from monte_carlo.improved_mcts import ImprovedMCTSAgent, RandomPlayoutAgent
+from generation_methods import Default, Scaling, Random2
+
+# Import all agents from main.py
+AGENT_CLASSES = {
+    'random': RandomAgent,
+    'mcts': ImprovedMCTSAgent,
+    'mcts_playout': RandomPlayoutAgent,
+    'expectimax': ExpectimaxAgent,
+    'expectimax_fast': ExpectimaxAgentFast,
+    'expectimax_deep': ExpectimaxAgentDeep,
+}
 
 
 def run_single_game(agent, grid_size=4, generation_method=None, max_moves=10000, verbose=False):
@@ -131,10 +144,21 @@ def run_experiment(agent_class, grid_size, generation_method, num_games=10, agen
     for i in range(num_games):
         print(f"Game {i+1}/{num_games}...", end=' ', flush=True)
         
-        # Create agent with matching tile distribution
-        if hasattr(agent_class, '__name__') and 'Expectimax' in str(agent_class):
-            agent = ExpectimaxAgent(depth=3, verbose=False, tile_distribution=tile_dist)
+        # Create agent based on type
+        agent_class_name = agent_class.__name__
+        if 'Expectimax' in agent_class_name:
+            # Expectimax variants with tile distribution
+            if 'Fast' in agent_class_name:
+                agent = ExpectimaxAgentFast(verbose=False, tile_distribution=tile_dist)
+            elif 'Deep' in agent_class_name:
+                agent = ExpectimaxAgentDeep(verbose=False, tile_distribution=tile_dist)
+            else:
+                agent = ExpectimaxAgent(depth=3, verbose=False, tile_distribution=tile_dist)
+        elif 'MCTS' in agent_class_name or 'Monte' in agent_class_name:
+            # MCTS agents - use default parameters from module
+            agent = agent_class()
         else:
+            # Other agents (Random, etc.)
             agent = agent_class()
         
         result = run_single_game(agent, grid_size=grid_size, generation_method=generation_method)
@@ -189,17 +213,19 @@ def run_experiment(agent_class, grid_size, generation_method, num_games=10, agen
 def main():
     """Main experimental evaluation."""
     # Parse arguments
-    num_games = 10 if len(sys.argv) <= 1 else int(sys.argv[1])
+    if len(sys.argv) <= 1:
+        num_games = 10
+        test_agents = ['random', 'mcts', 'expectimax']  # Default agents to test
+    else:
+        num_games = int(sys.argv[1])
+        # Optional: specify agents to test as additional arguments
+        test_agents = sys.argv[2:] if len(sys.argv) > 2 else list(AGENT_CLASSES.keys())
     
     print("\n" + "="*70)
-    print("COMPREHENSIVE EXPECTIMAX EVALUATION")
+    print("COMPREHENSIVE AGENT EVALUATION")
     print("Testing generalization across grid sizes and tile distributions")
+    print(f"Agents to test: {', '.join(test_agents)}")
     print("="*70)
-    
-    # Create quiet Expectimax agent factory
-    # Note: We'll create agents with proper tile_distribution in run_experiment
-    ExpectimaxQuiet = ExpectimaxAgent
-    ExpectimaxQuiet.__name__ = "ExpectimaxAgent"
     
     # Create generation methods
     default_gen = Default()
@@ -208,59 +234,34 @@ def main():
     # Store all results for comparison
     all_results = []
     
-    # ==========================================
-    # EXPERIMENT 1: Standard 4x4 (Baseline)
-    # ==========================================
-    print("\n" + "#"*70)
-    print("# EXPERIMENT 1: Baseline (Standard 4x4, Default Tiles)")
-    print("#"*70)
-    baseline = run_experiment(ExpectimaxQuiet, grid_size=4, generation_method=default_gen, 
-                              num_games=num_games, agent_name="Expectimax (Baseline)")
-    all_results.append(('Baseline 4x4 Default', baseline))
-    
-    # ==========================================
-    # EXPERIMENT 2: Scaling Tiles on 4x4
-    # ==========================================
-    print("\n" + "#"*70)
-    print("# EXPERIMENT 2: Modified Tile Distribution (4x4, Scaling Tiles)")
-    print("#"*70)
-    modified_4x4 = run_experiment(ExpectimaxQuiet, grid_size=4, generation_method=scaling_gen,
-                                  num_games=num_games, agent_name="Expectimax (Scaling)")
-    all_results.append(('4x4 Scaling Tiles', modified_4x4))
-    
-    # ==========================================
-    # EXPERIMENT 3: Different Grid Sizes (Default Tiles)
-    # ==========================================
-    print("\n" + "#"*70)
-    print("# EXPERIMENT 3: Grid Size Generalization (Default Tiles)")
-    print("#"*70)
-    
-    # 3x3 grid
-    small_grid = run_experiment(ExpectimaxQuiet, grid_size=5, generation_method=default_gen,
-                               num_games=num_games, agent_name="Expectimax (5x5)")
-    all_results.append(('5x5 Default', small_grid))
-    
-    # 5x5 grid
-    large_grid = run_experiment(ExpectimaxQuiet, grid_size=6, generation_method=default_gen,
-                               num_games=num_games, agent_name="Expectimax (6x6)")
-    all_results.append(('6x6 Default', large_grid))
-    
-    # ==========================================
-    # EXPERIMENT 4: Combined Modifications
-    # ==========================================
-    print("\n" + "#"*70)
-    print("# EXPERIMENT 4: Combined Modifications")
-    print("#"*70)
-    
-    # 3x3 with scaling tiles
-    small_scaling = run_experiment(ExpectimaxQuiet, grid_size=5, generation_method=scaling_gen,
-                                   num_games=num_games, agent_name="Expectimax (5x5 Scaling)")
-    all_results.append(('5x5 Scaling', small_scaling))
-    
-    # 5x5 with scaling tiles
-    large_scaling = run_experiment(ExpectimaxQuiet, grid_size=6, generation_method=scaling_gen,
-                                   num_games=num_games, agent_name="Expectimax (6x6 Scaling)")
-    all_results.append(('6x6 Scaling', large_scaling))
+    # Test each agent
+    for agent_key in test_agents:
+        if agent_key not in AGENT_CLASSES:
+            print(f"\nWarning: Unknown agent '{agent_key}', skipping...")
+            continue
+        
+        agent_class = AGENT_CLASSES[agent_key]
+        agent_display_name = agent_key.upper()
+        
+        print("\n" + "#"*70)
+        print(f"# TESTING AGENT: {agent_display_name}")
+        print("#"*70)
+        
+        # Test 6 scenarios: 3x3, 4x4, 5x5 with both Default and Scaling tiles
+        for grid_size in [3, 4, 5]:
+            # Default tiles
+            exp_name = f"{agent_display_name}_{grid_size}x{grid_size}_Default"
+            print(f"\n--- {agent_display_name} on {grid_size}x{grid_size} (Default tiles) ---")
+            result = run_experiment(agent_class, grid_size=grid_size, generation_method=default_gen,
+                                  num_games=num_games, agent_name=exp_name)
+            all_results.append((exp_name, result))
+            
+            # Scaling tiles
+            exp_name_scaling = f"{agent_display_name}_{grid_size}x{grid_size}_Scaling"
+            print(f"\n--- {agent_display_name} on {grid_size}x{grid_size} (Scaling tiles) ---")
+            result_scaling = run_experiment(agent_class, grid_size=grid_size, generation_method=scaling_gen,
+                                          num_games=num_games, agent_name=exp_name_scaling)
+            all_results.append((exp_name_scaling, result_scaling))
     
     # ==========================================
     # FINAL COMPARISON
@@ -274,21 +275,12 @@ def main():
     for name, result in all_results:
         print(f"{name:<25} {result['avg_score']:>12.1f} {result['avg_max_tile']:>12.1f} {result['win_rate']:>9.1%}")
     
-    # Calculate performance degradation
-    baseline_score = baseline['avg_score']
-    print(f"\n{'Performance vs Baseline:':<25}")
-    print("-"*70)
-    for name, result in all_results[1:]:  # Skip baseline
-        degradation = ((result['avg_score'] - baseline_score) / baseline_score) * 100
-        print(f"{name:<25} {degradation:>+6.1f}%")
     
     print("\n" + "="*70)
     print("ANALYSIS COMPLETE")
     print("="*70)
-    print(f"\nKey Findings:")
-    print(f"1. Baseline performance (4x4 default): {baseline_score:.1f} avg score")
-    print(f"2. Scaling tiles impact: {((modified_4x4['avg_score']-baseline_score)/baseline_score)*100:+.1f}%")
-    print(f"3. Heuristics generalize to different grid sizes: {'YES' if all(r['avg_score'] > 0 for _, r in all_results) else 'NO'}")
+    print(f"\nTested {len(test_agents)} agent(s) across multiple configurations")
+    print(f"Total experiments run: {len(all_results)}")
     print("="*70 + "\n")
 
 
