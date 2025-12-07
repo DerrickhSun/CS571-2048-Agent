@@ -236,14 +236,14 @@ def main():
     print("#"*70)
     
     # 3x3 grid
-    small_grid = run_experiment(ExpectimaxQuiet, grid_size=3, generation_method=default_gen,
-                               num_games=num_games, agent_name="Expectimax (3x3)")
-    all_results.append(('3x3 Default', small_grid))
+    small_grid = run_experiment(ExpectimaxQuiet, grid_size=5, generation_method=default_gen,
+                               num_games=num_games, agent_name="Expectimax (5x5)")
+    all_results.append(('5x5 Default', small_grid))
     
     # 5x5 grid
-    large_grid = run_experiment(ExpectimaxQuiet, grid_size=5, generation_method=default_gen,
-                               num_games=num_games, agent_name="Expectimax (5x5)")
-    all_results.append(('5x5 Default', large_grid))
+    large_grid = run_experiment(ExpectimaxQuiet, grid_size=6, generation_method=default_gen,
+                               num_games=num_games, agent_name="Expectimax (6x6)")
+    all_results.append(('6x6 Default', large_grid))
     
     # ==========================================
     # EXPERIMENT 4: Combined Modifications
@@ -253,14 +253,14 @@ def main():
     print("#"*70)
     
     # 3x3 with scaling tiles
-    small_scaling = run_experiment(ExpectimaxQuiet, grid_size=3, generation_method=scaling_gen,
-                                   num_games=num_games, agent_name="Expectimax (3x3 Scaling)")
-    all_results.append(('3x3 Scaling', small_scaling))
+    small_scaling = run_experiment(ExpectimaxQuiet, grid_size=5, generation_method=scaling_gen,
+                                   num_games=num_games, agent_name="Expectimax (5x5 Scaling)")
+    all_results.append(('5x5 Scaling', small_scaling))
     
     # 5x5 with scaling tiles
-    large_scaling = run_experiment(ExpectimaxQuiet, grid_size=5, generation_method=scaling_gen,
-                                   num_games=num_games, agent_name="Expectimax (5x5 Scaling)")
-    all_results.append(('5x5 Scaling', large_scaling))
+    large_scaling = run_experiment(ExpectimaxQuiet, grid_size=6, generation_method=scaling_gen,
+                                   num_games=num_games, agent_name="Expectimax (6x6 Scaling)")
+    all_results.append(('6x6 Scaling', large_scaling))
     
     # ==========================================
     # FINAL COMPARISON
