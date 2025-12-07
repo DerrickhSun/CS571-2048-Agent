@@ -50,4 +50,15 @@ In agent mode:
 ```
 Q[s][a] = Q[s][a] + α * (reward + γ * max_a' Q[s'][a'] − Q[s][a])
 
+# 2048 DQN Agent
+
+## Train Q Learning Enivornment:
+
+python train_dqn.py 
+Use the parameter "--help" for more information about training hyper parameters
+After training, the saved model can be used for testing using test_dqn.py
+
+python test_dqn.py
+Use the parameter "--help" for more information about testing and epsilon tuning.
+
 
