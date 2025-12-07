@@ -18,6 +18,8 @@ from agents.expectimax import ExpectimaxAgent, ExpectimaxAgentFast, ExpectimaxAg
 from agents.naive import RandomAgent
 from monte_carlo.improved_mcts import ImprovedMCTSAgent, RandomPlayoutAgent
 from generation_methods import Default, Scaling, Random2
+from agents.q_learning_agent import QLearningAgent
+
 
 # Import all agents from main.py
 AGENT_CLASSES = {
@@ -27,6 +29,7 @@ AGENT_CLASSES = {
     'expectimax': ExpectimaxAgent,
     'expectimax_fast': ExpectimaxAgentFast,
     'expectimax_deep': ExpectimaxAgentDeep,
+    'qlearning': QLearningAgent,
 }
 
 
