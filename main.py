@@ -14,6 +14,7 @@ import game_files.logic as logic
 from agents.naive import RandomAgent
 from monte_carlo.improved_mcts import ImprovedMCTSAgent, RandomPlayoutAgent
 from generation_methods import Random2, Default, Scaling
+from agents.expectimax import ExpectimaxAgent, ExpectimaxAgentFast, ExpectimaxAgentDeep
 
 # Try to import Q-Learning agent (may not be available if q_learning directory doesn't exist)
 try:
@@ -31,6 +32,11 @@ AGENT_CLASSES = {
     # Monte Carlo Tree Search agents
     'mcts': ImprovedMCTSAgent,
     'mcts_playout': RandomPlayoutAgent,
+
+    # Expectimax agents
+    'expectimax': ExpectimaxAgent,           # Standard (depth=3)
+    'expectimax_fast': ExpectimaxAgentFast,  # Faster (depth=2)
+    'expectimax_deep': ExpectimaxAgentDeep,  # Stronger (depth=4)
 }
 
 # Add Q-Learning agent if available
